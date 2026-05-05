@@ -74,13 +74,13 @@ class Track:
         s = self.kf.statePost
         cx, cy, w, h = s[0,0], s[1,0], s[2,0], s[3,0]
         return np.array([cx - w/2, cy - h/2, cx + w/2, cy + h/2])
-    
+
 
 
 class ObjectTracking:
     """Object Tracking + zliczanie linii – wyświetla detekcje YOLO, tylko osoby."""
 
-    def __init__(self, model="yolo26n.pt", source="path/to/video.mp4",
+    def __init__(self, model="yolo26n.pt", source=None,
                  conf_thres=0.5, iou_match_thres=0.3,
                  max_age=30, min_hits=3,
                  line_start=None, line_end=None,
@@ -89,7 +89,7 @@ class ObjectTracking:
         self.names = self.model.names
         self.target_class = target_class              # filtrowana klasa
 
-        self.cap = cv2.VideoCapture(source)
+        self.cap = cv2.VideoCapture(source if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
 
         w, h, fps = (int(self.cap.get(x)) for x in
@@ -187,7 +187,7 @@ class ObjectTracking:
                 self.out_count += 1
                 return -1
         return 0
-    
+
     def update_side_and_count(self, track, center):
         """
         Aktualizuje stronę linii dla śledzonego obiektu i zlicza przekroczenia.
@@ -346,7 +346,7 @@ class ObjectTracking:
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, required=False, help="YOLO model to use, defaults to yolo26s.pt", default="yolo26s.pt")
-    parser.add_argument('source', type=str, help="source video file")
+    parser.add_argument('--source', type=str, required=False, help="source video file, runs with default camera input if not provided", default=None)
     args = parser.parse_args(argv[1:])
     tracker = ObjectTracking(
         model=args.model,
