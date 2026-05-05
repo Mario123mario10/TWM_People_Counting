@@ -4,6 +4,8 @@ from ultralytics import YOLO
 from ultralytics.utils.plotting import colors
 from collections import defaultdict
 from scipy.optimize import linear_sum_assignment
+import argparse
+import sys
 
 
 class Track:
@@ -341,13 +343,19 @@ class ObjectTracking:
         self.cap.release()
         cv2.destroyAllWindows()
 
-
-if __name__ == "__main__":
+def main(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, required=False, help="YOLO model to use, defaults to yolo26s.pt", default="yolo26s.pt")
+    parser.add_argument('source', type=str, help="source video file")
+    args = parser.parse_args(argv[1:])
     tracker = ObjectTracking(
-        model="yolo26s.pt",
-        source="./output4.mp4",
-        target_class=0,          # 0 = person; możesz zmienić na inną klasę
+        model=args.model,
+        source=args.source,
+        target_class=0,  # 0 = person; możesz zmienić na inną klasę
         # line_start=(200,300),
         # line_end=(800,300)
     )
     tracker.run()
+
+if __name__ == "__main__":
+    main(sys.argv)
