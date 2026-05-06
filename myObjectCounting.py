@@ -9,12 +9,10 @@ import sys
 
 
 class Track:
-    """Pojedynczy śledzony obiekt z filtrem Kalmana."""
 
     def __init__(self, detection, track_id):
         self.id = track_id
         self.hits = 1
-        self.age = 0
         self.time_since_update = 0
         self.side = None
 
@@ -53,7 +51,6 @@ class Track:
         y1 = cy - h/2
         x2 = cx + w/2
         y2 = cy + h/2
-        self.age += 1
         self.time_since_update += 1
         return np.array([x1, y1, x2, y2])
 
@@ -66,11 +63,9 @@ class Track:
         measurement = np.array([[cx], [cy], [w], [h]], np.float32)
         self.kf.correct(measurement)
         self.hits += 1
-        self.age = 0
         self.time_since_update = 0
 
     def get_state(self):
-        """Zwraca wygładzony bounding box (używane tylko do linii i historii)."""
         s = self.kf.statePost
         cx, cy, w, h = s[0,0], s[1,0], s[2,0], s[3,0]
         return np.array([cx - w/2, cy - h/2, cx + w/2, cy + h/2])
@@ -78,16 +73,15 @@ class Track:
 
 
 class ObjectTracking:
-    """Object Tracking + zliczanie linii – wyświetla detekcje YOLO, tylko osoby."""
 
     def __init__(self, model="yolo26n.pt", source=None,
                  conf_thres=0.5, iou_match_thres=0.3,
                  max_age=30, min_hits=3,
                  line_start=None, line_end=None,
-                 target_class=0):                    # NOWE: domyślnie klasa 0 = person
+                 target_class=0):                    
         self.model = YOLO(model)
         self.names = self.model.names
-        self.target_class = target_class              # filtrowana klasa
+        self.target_class = target_class              
 
         self.cap = cv2.VideoCapture(source if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
@@ -111,7 +105,6 @@ class ObjectTracking:
         self.next_id = 0
         self.track_history = defaultdict(lambda: [])
 
-        # Linia wirtualna
         if line_start is None or line_end is None:
             self.line_start = (0, h // 2)
             self.line_end = (w, h // 2)
@@ -167,65 +160,32 @@ class ObjectTracking:
                     self.font, (104, 31, 17) if cls == 2 else (255, 255, 255),
                     self.text_width, cv2.LINE_AA)
 
-    def check_line_crossing(self, track_id, prev_center, curr_center):
-        """Zwraca 1 (IN), -1 (OUT), 0 (brak). Kalman centers."""
-        line_vec = np.array([self.line_end[0] - self.line_start[0],
-                             self.line_end[1] - self.line_start[1]])
-        prev_vec = np.array([prev_center[0] - self.line_start[0],
-                             prev_center[1] - self.line_start[1]])
-        curr_vec = np.array([curr_center[0] - self.line_start[0],
-                             curr_center[1] - self.line_start[1]])
-        prev_cross = np.cross(line_vec, prev_vec)
-        curr_cross = np.cross(line_vec, curr_vec)
-        prev_side = 1 if prev_cross > 0 else -1
-        curr_side = 1 if curr_cross > 0 else -1
-        if prev_side != curr_side:
-            if prev_side == -1 and curr_side == 1:
-                self.in_count += 1
-                return 1
-            else:
-                self.out_count += 1
-                return -1
-        return 0
-
     def update_side_and_count(self, track, center):
-        """
-        Aktualizuje stronę linii dla śledzonego obiektu i zlicza przekroczenia.
-        center: (cx, cy) – środek obiektu (np. ze stanu Kalmana)
-        """
-        # Wektor linii
         line_vec = np.array([self.line_end[0] - self.line_start[0],
                             self.line_end[1] - self.line_start[1]])
-        # Wektor od początku linii do punktu
         pt_vec = np.array([center[0] - self.line_start[0],
                         center[1] - self.line_start[1]])
-        # Obliczamy stronę: dodatni Z -> lewa strona (umownie)
         cross = np.cross(line_vec, pt_vec)
         current_side = 1 if cross > 0 else -1
 
         if track.side is None:
-            # Pierwsza rejestracja – tylko zapisz stronę, nie zliczaj
             track.side = current_side
         elif track.side != current_side:
-            # Wykryto zmianę strony
             if track.side == -1 and current_side == 1:
                 self.in_count += 1
             else:
                 self.out_count += 1
-            # Aktualizujemy zapamiętaną stronę
             track.side = current_side
 
     def run(self):
-        """Główna pętla."""
         while self.cap.isOpened():
             success, im0 = self.cap.read()
             if not success:
                 print("End of video or failed to read image.")
                 break
 
-            # --- Detekcja YOLO ---
             results = self.model(im0, conf=self.conf_thres, verbose=False)
-            detections = []   # tylko osoby
+            detections = []
             classes = []
             if results and len(results) > 0:
                 result = results[0]
@@ -234,7 +194,7 @@ class ObjectTracking:
                     confs = result.boxes.conf.cpu().numpy()
                     clss = result.boxes.cls.cpu().numpy()
                     for box, conf, cls in zip(boxes, confs, clss):
-                        if int(cls) == self.target_class:   # filtr klasy
+                        if int(cls) == self.target_class:
                             detections.append(box)
                             classes.append(cls)
 
@@ -273,7 +233,6 @@ class ObjectTracking:
                     track.cls = classes[det_idx]
                 else:
                     track.cls = classes[det_idx]
-                # Zapamiętaj do rysowania detekcji YOLO
                 track_detection_pairs.append((track.id, detections[det_idx], track.cls))
 
             # --- Nowe ścieżki z nieprzypisanych detekcji ---
@@ -284,33 +243,20 @@ class ObjectTracking:
                 track_detection_pairs.append((self.next_id, detections[det_idx], classes[det_idx]))
                 self.next_id += 1
 
-            # --- Sprawdzenie przekroczeń linii (używamy wygładzonych środków Kalmana) ---
-            for track_idx, det_idx in matches:
-                track = self.tracks[track_idx]
-                if track.hits >= self.min_hits:
-                    prev_center = prev_centers[track_idx]
-                    curr_center = ((track.get_state()[0] + track.get_state()[2]) / 2.0,
-                                   (track.get_state()[1] + track.get_state()[3]) / 2.0)
-                    # self.check_line_crossing(track.id, prev_center, curr_center)
-
             # --- Usuwanie starych ścieżek ---
             self.tracks = [t for t in self.tracks if t.time_since_update <= self.max_age]
 
             # --- RYSOWANIE ---
-            # Linia i liczniki
             cv2.line(im0, self.line_start, self.line_end, (0, 255, 255), 2)
             cv2.putText(im0, f"IN: {self.in_count}", (10, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
             cv2.putText(im0, f"OUT: {self.out_count}", (10, 80),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
-            # 1. Rysowanie bounding boxów – tylko detekcje YOLO
+
             for track_id, bbox, cls in track_detection_pairs:
-                # Możemy chcieć rysować tylko te, które mają odpowiednią liczbę potwierdzeń?
-                # Aby zachować spójność, rysujemy wszystkie detekcje, które są śledzone.
                 self.draw_bbox(im0, bbox, track_id, cls)
 
-            # 2. Aktualizacja historii i rysowanie śladów (centra z wygładzonego stanu)
             for track in self.tracks:
                 if track.hits >= self.min_hits:
                     bbox_kalman = track.get_state()
@@ -351,9 +297,7 @@ def main(argv):
     tracker = ObjectTracking(
         model=args.model,
         source=args.source,
-        target_class=0,  # 0 = person; możesz zmienić na inną klasę
-        # line_start=(200,300),
-        # line_end=(800,300)
+        target_class=0
     )
     tracker.run()
 
