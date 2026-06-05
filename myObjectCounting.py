@@ -78,20 +78,27 @@ class ObjectTracking:
                  conf_thres=0.5, iou_match_thres=0.3,
                  max_age=30, min_hits=3,
                  line_start=None, line_end=None,
-                 target_class=0):                    
+                 target_class=0, imgsz=None,
+                 output="object-tracking.avi", display=True,
+                 device=None):
         self.model = YOLO(model)
         self.names = self.model.names
-        self.target_class = target_class              
+        self.target_class = target_class
+        self.imgsz = imgsz
+        self.output = output
+        self.display = display
+        self.device = device
 
         self.cap = cv2.VideoCapture(source if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
 
-        w, h, fps = (int(self.cap.get(x)) for x in
-                     (cv2.CAP_PROP_FRAME_WIDTH,
-                      cv2.CAP_PROP_FRAME_HEIGHT,
-                      cv2.CAP_PROP_FPS))
+        w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = self.cap.get(cv2.CAP_PROP_FPS)
+        if fps <= 0:
+            fps = 25.0
         self.writer = cv2.VideoWriter(
-            "object-tracking.avi",
+            self.output,
             cv2.VideoWriter_fourcc(*"mp4v"),
             fps, (w, h)
         )
@@ -100,6 +107,11 @@ class ObjectTracking:
         self.iou_match_thres = iou_match_thres
         self.max_age = max_age
         self.min_hits = min_hits
+        self.yolo_kwargs = {"conf": self.conf_thres, "verbose": False}
+        if self.imgsz is not None:
+            self.yolo_kwargs["imgsz"] = self.imgsz
+        if self.device is not None:
+            self.yolo_kwargs["device"] = self.device
 
         self.tracks = []
         self.next_id = 0
@@ -124,7 +136,8 @@ class ObjectTracking:
         self.circle_thickness = 5
         self.polyline_thickness = 2
         self.window_name = "YOLO Tracking"
-        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        if self.display:
+            cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
 
     def iou_batch(self, bboxes1, bboxes2):
         bboxes1 = np.expand_dims(bboxes1, 1)
@@ -184,7 +197,7 @@ class ObjectTracking:
                 print("End of video or failed to read image.")
                 break
 
-            results = self.model(im0, conf=self.conf_thres, verbose=False)
+            results = self.model(im0, **self.yolo_kwargs)
             detections = []
             classes = []
             if results and len(results) > 0:
@@ -278,26 +291,68 @@ class ObjectTracking:
                                colors(int(track.cls) if hasattr(track, 'cls') else 0, True), -1)
 
             self.writer.write(im0)
-            cv2.imshow(self.window_name, im0)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
-            elif key == ord('c'):
-                print("Selection cleared")
+            if self.display:
+                cv2.imshow(self.window_name, im0)
+
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    break
+                elif key == ord('c'):
+                    print("Selection cleared")
 
         self.cap.release()
-        cv2.destroyAllWindows()
+        self.writer.release()
+        if self.display:
+            cv2.destroyAllWindows()
+        print(f"Final counts: IN={self.in_count}, OUT={self.out_count}")
 
 def main(argv):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="YOLO person tracking and IN/OUT counting.")
     parser.add_argument('--model', type=str, required=False, help="YOLO model to use, defaults to yolo26s.pt", default="yolo26s.pt")
     parser.add_argument('--source', type=str, required=False, help="source video file, runs with default camera input if not provided", default=None)
+    parser.add_argument('--output', type=str, required=False, help="output video path", default="object-tracking.avi")
+    parser.add_argument('--conf', type=float, required=False, help="YOLO confidence threshold", default=0.5)
+    parser.add_argument('--imgsz', type=int, required=False, help="YOLO inference image size, e.g. 640 or 960", default=None)
+    parser.add_argument('--iou', type=float, required=False, help="IOU threshold for matching detections to tracks", default=0.3)
+    parser.add_argument('--max-age', type=int, required=False, help="frames to keep a track without detection", default=30)
+    parser.add_argument('--min-hits', type=int, required=False, help="detections needed before a track is considered valid", default=3)
+    parser.add_argument('--line', type=int, nargs=4, metavar=('X1', 'Y1', 'X2', 'Y2'),
+                        help="counting line coordinates, e.g. --line 0 120 320 120", default=None)
+    parser.add_argument('--target-class', type=int, required=False, help="YOLO class id to count, defaults to 0/person", default=0)
+    parser.add_argument('--device', type=str, required=False, help="inference device, e.g. cpu or cuda:0", default=None)
+    parser.add_argument('--no-display', action='store_true', help="run without showing an OpenCV window")
     args = parser.parse_args(argv[1:])
+
+    if not 0 <= args.conf <= 1:
+        parser.error("--conf must be between 0 and 1")
+    if not 0 <= args.iou <= 1:
+        parser.error("--iou must be between 0 and 1")
+    if args.max_age < 0:
+        parser.error("--max-age must be 0 or greater")
+    if args.min_hits < 1:
+        parser.error("--min-hits must be 1 or greater")
+
+    line_start = None
+    line_end = None
+    if args.line is not None:
+        line_start = (args.line[0], args.line[1])
+        line_end = (args.line[2], args.line[3])
+
     tracker = ObjectTracking(
         model=args.model,
         source=args.source,
-        target_class=0
+        conf_thres=args.conf,
+        iou_match_thres=args.iou,
+        max_age=args.max_age,
+        min_hits=args.min_hits,
+        line_start=line_start,
+        line_end=line_end,
+        target_class=args.target_class,
+        imgsz=args.imgsz,
+        output=args.output,
+        display=not args.no_display,
+        device=args.device
     )
     tracker.run()
 
