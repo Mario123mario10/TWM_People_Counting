@@ -76,11 +76,12 @@ class ObjectTracking:
 
     def __init__(self, model="yolo26n.pt", source=None,
                  conf_thres=0.5, iou_match_thres=0.3,
-                 max_age=30, min_hits=3,
+                 max_age=30, min_hits=4,
                  line_start=None, line_end=None,
                  target_class=0, imgsz=None,
                  output="object-tracking.avi", display=True,
-                 device=None):
+                 device=None, augment=False,
+                 nms_iou=None, max_det=None):
         self.model = YOLO(model)
         self.names = self.model.names
         self.target_class = target_class
@@ -88,6 +89,9 @@ class ObjectTracking:
         self.output = output
         self.display = display
         self.device = device
+        self.augment = augment
+        self.nms_iou = nms_iou
+        self.max_det = max_det
 
         self.cap = cv2.VideoCapture(source if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
@@ -107,11 +111,21 @@ class ObjectTracking:
         self.iou_match_thres = iou_match_thres
         self.max_age = max_age
         self.min_hits = min_hits
-        self.yolo_kwargs = {"conf": self.conf_thres, "verbose": False}
+        self.yolo_kwargs = {
+            "conf": self.conf_thres,
+            "classes": [self.target_class],
+            "verbose": False,
+        }
         if self.imgsz is not None:
             self.yolo_kwargs["imgsz"] = self.imgsz
         if self.device is not None:
             self.yolo_kwargs["device"] = self.device
+        if self.augment:
+            self.yolo_kwargs["augment"] = True
+        if self.nms_iou is not None:
+            self.yolo_kwargs["iou"] = self.nms_iou
+        if self.max_det is not None:
+            self.yolo_kwargs["max_det"] = self.max_det
 
         self.tracks = []
         self.next_id = 0
@@ -321,6 +335,9 @@ def main(argv):
                         help="counting line coordinates, e.g. --line 0 120 320 120", default=None)
     parser.add_argument('--target-class', type=int, required=False, help="YOLO class id to count, defaults to 0/person", default=0)
     parser.add_argument('--device', type=str, required=False, help="inference device, e.g. cpu or cuda:0", default=None)
+    parser.add_argument('--augment', action='store_true', help="enable YOLO test-time augmentation, slower but sometimes more robust")
+    parser.add_argument('--nms-iou', type=float, required=False, help="YOLO NMS IOU threshold, separate from tracker --iou", default=None)
+    parser.add_argument('--max-det', type=int, required=False, help="maximum YOLO detections per frame", default=None)
     parser.add_argument('--no-display', action='store_true', help="run without showing an OpenCV window")
     args = parser.parse_args(argv[1:])
 
@@ -328,10 +345,14 @@ def main(argv):
         parser.error("--conf must be between 0 and 1")
     if not 0 <= args.iou <= 1:
         parser.error("--iou must be between 0 and 1")
+    if args.nms_iou is not None and not 0 <= args.nms_iou <= 1:
+        parser.error("--nms-iou must be between 0 and 1")
     if args.max_age < 0:
         parser.error("--max-age must be 0 or greater")
     if args.min_hits < 1:
         parser.error("--min-hits must be 1 or greater")
+    if args.max_det is not None and args.max_det < 1:
+        parser.error("--max-det must be 1 or greater")
 
     line_start = None
     line_end = None
@@ -352,7 +373,10 @@ def main(argv):
         imgsz=args.imgsz,
         output=args.output,
         display=not args.no_display,
-        device=args.device
+        device=args.device,
+        augment=args.augment,
+        nms_iou=args.nms_iou,
+        max_det=args.max_det
     )
     tracker.run()
 
