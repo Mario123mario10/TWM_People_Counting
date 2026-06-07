@@ -15,6 +15,7 @@ class Track:
         self.hits = 1
         self.time_since_update = 0
         self.side = None
+        self.count_cooldown = 0
 
         x1, y1, x2, y2 = detection
         w = x2 - x1
@@ -81,7 +82,8 @@ class ObjectTracking:
                  target_class=0, imgsz=None,
                  output="object-tracking.avi", display=True,
                  device=None, augment=False,
-                 nms_iou=None, max_det=None):
+                 nms_iou=None, max_det=None,
+                 line_margin=0.0, count_cooldown=0):
         self.model = YOLO(model)
         self.names = self.model.names
         self.target_class = target_class
@@ -92,6 +94,8 @@ class ObjectTracking:
         self.augment = augment
         self.nms_iou = nms_iou
         self.max_det = max_det
+        self.line_margin = line_margin
+        self.count_cooldown = count_cooldown
 
         self.cap = cv2.VideoCapture(source if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
@@ -192,8 +196,19 @@ class ObjectTracking:
                             self.line_end[1] - self.line_start[1]])
         pt_vec = np.array([center[0] - self.line_start[0],
                         center[1] - self.line_start[1]])
+        line_len = np.linalg.norm(line_vec)
+        if line_len == 0:
+            return
+
         cross = np.cross(line_vec, pt_vec)
+        signed_distance = cross / line_len
+        if abs(signed_distance) < self.line_margin:
+            return
+
         current_side = 1 if cross > 0 else -1
+        if track.count_cooldown > 0:
+            track.side = current_side
+            return
 
         if track.side is None:
             track.side = current_side
@@ -203,6 +218,7 @@ class ObjectTracking:
             else:
                 self.out_count += 1
             track.side = current_side
+            track.count_cooldown = self.count_cooldown
 
     def run(self):
         while self.cap.isOpened():
@@ -233,6 +249,8 @@ class ObjectTracking:
                 prev_centers.append(((prev_bbox[0]+prev_bbox[2])/2.0,
                                      (prev_bbox[1]+prev_bbox[3])/2.0))
                 pred = track.predict()
+                if track.count_cooldown > 0:
+                    track.count_cooldown -= 1
                 predicted_bboxes.append(pred)
 
             # --- Skojarzenie węgierskie + IOU ---
@@ -338,6 +356,10 @@ def main(argv):
     parser.add_argument('--augment', action='store_true', help="enable YOLO test-time augmentation, slower but sometimes more robust")
     parser.add_argument('--nms-iou', type=float, required=False, help="YOLO NMS IOU threshold, separate from tracker --iou", default=None)
     parser.add_argument('--max-det', type=int, required=False, help="maximum YOLO detections per frame", default=None)
+    parser.add_argument('--line-margin', type=float, required=False,
+                        help="dead zone around counting line in pixels; crossings inside it are ignored", default=0.0)
+    parser.add_argument('--count-cooldown', type=int, required=False,
+                        help="frames to wait before the same track can be counted again", default=0)
     parser.add_argument('--no-display', action='store_true', help="run without showing an OpenCV window")
     args = parser.parse_args(argv[1:])
 
@@ -353,6 +375,10 @@ def main(argv):
         parser.error("--min-hits must be 1 or greater")
     if args.max_det is not None and args.max_det < 1:
         parser.error("--max-det must be 1 or greater")
+    if args.line_margin < 0:
+        parser.error("--line-margin must be 0 or greater")
+    if args.count_cooldown < 0:
+        parser.error("--count-cooldown must be 0 or greater")
 
     line_start = None
     line_end = None
@@ -376,7 +402,9 @@ def main(argv):
         device=args.device,
         augment=args.augment,
         nms_iou=args.nms_iou,
-        max_det=args.max_det
+        max_det=args.max_det,
+        line_margin=args.line_margin,
+        count_cooldown=args.count_cooldown
     )
     tracker.run()
 
