@@ -1,0 +1,19 @@
+filename,gt_in,gt_out,line_x1,line_y1,line_x2,line_y2,notes
+2026-06-07 13-47-49-00.00.05.790-00.00.11.944-seg02.mp4,0,1,0,170,640,170,""
+2026-06-07 13-47-49-00.00.11.944-00.00.16.056-seg03.mp4,1,0,0,170,640,170,""
+2026-06-07 13-47-49-00.00.16.056-00.00.21.593-seg04.mp4,0,1,0,170,640,170,""
+2026-06-07 13-47-49-00.00.21.593-00.00.26.011-seg05.mp4,2,0,0,170,640,170,""
+2026-06-07 13-47-49-00.00.26.011-00.00.31.861-seg06.mp4,0,2,0,170,640,170,""
+2026-06-07 13-47-49-00.00.31.861-00.00.37.367-seg07.mp4,1,0,0,170,640,170,"Jedna osoba wchodzi, druga nie dochodzi do linii"
+2026-06-07 13-47-49-00.00.37.367-00.00.43.750-seg08.mp4,1,1,0,170,640,170,Osoby mijają się w wejściu
+2026-06-07 13-47-49-00.00.43.750-00.00.51.008-seg09.mp4,1,1,0,170,640,170,Osoby mijają się w wejściu
+2026-06-07 13-47-49-00.00.51.008-00.00.58.263-seg10.mp4,1,0,0,170,640,170,Osoba wchodząca ma pluszankę-kota na głowie
+2026-06-07 13-47-49-00.00.58.263-00.01.05.926-seg11.mp4,0,1,0,170,640,170,Osoba wychodząca ma pluszankę-kota na głowie
+2026-06-07 13-47-49-00.01.19.830-00.01.23.922-seg14.mp4,1,0,0,170,640,170,Osoba wchodząca przepycha się obok drugiej stojącej w miejscu
+2026-06-07 13-47-49-00.01.27.156-00.01.33.841-seg16.mp4,0,1,0,170,640,170,Osoba wychodząca przepycha się obok drugiej stojącej w miejscu
+2026-06-07 13-47-49-00.01.33.841-00.01.38.864-seg17.mp4,0,1,0,170,640,170,"Osoba wychodząca przepycha się obok drugiej stojącej w miejscu, czarne włosy mogą zlewać się z ubraniem"
+2026-06-07 13-47-49-00.01.38.864-00.01.42.883-seg18.mp4,1,0,0,170,640,170,"Osoba wchodząca przechodzi obok osoby stojącej ""wewnątrz"""
+2026-06-07 13-47-49-00.01.56.743-00.02.03.249-seg20.mp4,0,0,0,160,640,160,Osoba wchodząca zawraca tuż przed wejściem
+2026-06-07 13-47-49-00.02.03.249-00.02.08.758-seg21.mp4,1,1,0,170,640,170,Osoba wychodząca zawraca po wyjściu i wchodzi ponownie
+2026-06-07 13-47-49-00.02.08.758-00.02.14.935-seg22.mp4,1,0,0,170,640,170,"Osoba wchodząca macha, co utrudnia jej wykrycie"
+2026-06-07 13-47-49-00.02.14.935-00.02.21.113-seg23.mp4,1,1,0,170,640,170,"Osoba wychodząca zaczyna się cofać i zawraca po wyjściu, ponownie wchodząc"
