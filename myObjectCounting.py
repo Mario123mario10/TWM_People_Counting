@@ -76,7 +76,7 @@ class Track:
 class ObjectTracking:
 
     def __init__(self, model="yolo26n.pt", source=None,
-                 conf_thres=0.5, iou_match_thres=0.3,
+                 conf_thres=0.3, iou_match_thres=0.3,
                  max_age=30, min_hits=4,
                  line_start=None, line_end=None,
                  target_class=0, imgsz=None,

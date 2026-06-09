@@ -1,2 +1,4 @@
 ultralytics
-argparse
+opencv-python
+numpy
+scipy

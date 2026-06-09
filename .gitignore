@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Runtime outputs
+result*.mp4
+result*.avi
+object-tracking.avi
+output*.mp4
+eval_outputs/
+evaluation_plots/
+
+# Temporary diagnostics generated during experiments
+diagnostics/
+
+# Large datasets and model weights are kept locally.
+data/*
+!data/annotations/
+!data/annotations/*.csv
+!data/annotations/*.md
+*.pt
+
+# OS / editor metadata
+.DS_Store
+Thumbs.db
+*.Zone.Identifier
