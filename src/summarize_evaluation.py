@@ -271,6 +271,8 @@ def generate_report(path, chart_dir, rows, failed_rows, summary):
         "",
         f"![Errors by video]({chart_dir.name}/errors_by_video.svg)",
         "",
+        f"![GT counts vs errors by video]({chart_dir.name}/gt_counts_vs_errors_by_video.svg)",
+        "",
         f"![GT vs predicted totals]({chart_dir.name}/gt_vs_pred_totals.svg)",
         "",
         f"![Processing FPS]({chart_dir.name}/processing_fps_by_video.svg)",
@@ -334,6 +336,8 @@ def main():
     accuracies = [to_float(row.get("counting_accuracy_percent")) for row in rows]
     error_in = [to_int(row.get("error_in")) for row in rows]
     error_out = [to_int(row.get("error_out")) for row in rows]
+    gt_total = [to_int(row.get("gt_in")) + to_int(row.get("gt_out")) for row in rows]
+    total_error = [to_int(row.get("total_abs_error")) for row in rows]
     fps = [to_float(row.get("processing_fps")) for row in rows]
     summary = build_summary(rows)
 
@@ -352,6 +356,15 @@ def main():
         [
             ("Error IN", "#ea4335", error_in),
             ("Error OUT", "#fbbc04", error_out),
+        ],
+    )
+    grouped_bar_chart(
+        chart_dir / "gt_counts_vs_errors_by_video.svg",
+        "Expected counts vs counting errors by video",
+        labels,
+        [
+            ("GT total", "#1a73e8", gt_total),
+            ("Total error", "#ea4335", total_error),
         ],
     )
     totals_chart(
