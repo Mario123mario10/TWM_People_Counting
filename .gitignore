@@ -19,7 +19,7 @@ evaluation_plots/
 evaluation_results.csv
 evaluation_summary.md
 evaluation_report.md
-results/
+results*/
 
 # Temporary diagnostics generated during experiments
 diagnostics/

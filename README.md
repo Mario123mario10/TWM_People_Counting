@@ -34,7 +34,9 @@ Pipeline:
 W projekcie używane są dwa typy danych:
 
 - własne nagrania domowe, odpowiadające scenariuszowi wejścia/wyjścia z pomieszczenia,
-- publiczny zbiór Baidu People Counting, używany jako dodatkowy test generalizacji.
+- publiczny zbiór Baidu People Counting, używany jako dodatkowy test generalizacji. https://github.com/shijieS/people-counting-dataset
+
+Link do dysku google z udostępnionymi zbiorami: https://drive.google.com/file/d/1bIFziEvwRebqOGa3zlPv0rF-tsMmWbpd/view?usp=sharing
 
 Nagrania głębi (`Depth`) nie są używane w aktualnym pipeline, ponieważ YOLO działa na obrazach RGB. Mogą być potraktowane jako rozszerzenie projektu.
 
