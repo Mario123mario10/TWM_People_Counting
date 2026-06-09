@@ -111,7 +111,7 @@ Automatyczna ewaluacja na podstawie pliku `data/annotations/ground_truth.csv`:
 
 ```bash
 python src/evaluate_counts.py \
-  --model best7.pt
+  --model models/best7.pt
 ```
 
 Można też użyć skrótu:

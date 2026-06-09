@@ -30,6 +30,8 @@ data/*
 !data/annotations/*.csv
 !data/annotations/*.md
 *.pt
+!models/
+!models/best7.pt
 
 # Small demo samples can be versioned explicitly.
 !demo/
