@@ -8,13 +8,18 @@ __pycache__/
 venv/
 env/
 
-# Runtime outputs
+# Runtime outputs and generated evaluation artifacts
 result*.mp4
 result*.avi
-object-tracking.avi
 output*.mp4
+output*.avi
+object-tracking.avi
 eval_outputs/
 evaluation_plots/
+evaluation_results.csv
+evaluation_summary.md
+evaluation_report.md
+results/
 
 # Temporary diagnostics generated during experiments
 diagnostics/
@@ -25,6 +30,13 @@ data/*
 !data/annotations/*.csv
 !data/annotations/*.md
 *.pt
+
+# Small demo samples can be versioned explicitly.
+!demo/
+!demo/input/
+!demo/input/*.mp4
+!demo/output/
+!demo/output/*.mp4
 
 # OS / editor metadata
 .DS_Store
