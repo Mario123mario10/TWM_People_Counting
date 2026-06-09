@@ -75,7 +75,7 @@ class Track:
 
 class ObjectTracking:
 
-    def __init__(self, model="yolo26n.pt", source=None,
+    def __init__(self, model="yolo26n.pt", source: str = None,
                  conf_thres=0.3, iou_match_thres=0.3,
                  max_age=30, min_hits=4,
                  line_start=None, line_end=None,
@@ -97,7 +97,7 @@ class ObjectTracking:
         self.line_margin = line_margin
         self.count_cooldown = count_cooldown
 
-        self.cap = cv2.VideoCapture(source if source else 0)
+        self.cap = cv2.VideoCapture((int(source) if source.isnumeric() else source) if source else 0)
         assert self.cap.isOpened(), "Error reading video file"
 
         w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -342,7 +342,7 @@ class ObjectTracking:
 def main(argv):
     parser = argparse.ArgumentParser(description="YOLO person tracking and IN/OUT counting.")
     parser.add_argument('--model', type=str, required=False, help="YOLO model to use, defaults to yolo26s.pt", default="yolo26s.pt")
-    parser.add_argument('--source', type=str, required=False, help="source video file, runs with default camera input if not provided", default=None)
+    parser.add_argument('--source', type=str, required=False, help="source video file, or camera index, runs with default camera if not provided", default=None)
     parser.add_argument('--output', type=str, required=False, help="output video path", default="object-tracking.avi")
     parser.add_argument('--conf', type=float, required=False, help="YOLO confidence threshold", default=0.5)
     parser.add_argument('--imgsz', type=int, required=False, help="YOLO inference image size, e.g. 640 or 960", default=None)
