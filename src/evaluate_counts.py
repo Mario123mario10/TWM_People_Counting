@@ -12,10 +12,6 @@ COUNT_RE = re.compile(r"Final counts:\s*IN=(\d+),\s*OUT=(\d+)")
 DEFAULT_SOURCE_DIRS = [
     "data/new_processed",
     "data/processed",
-    "data/raw",
-    "data/new_raw",
-    "data/home",
-    ".",
 ]
 
 
@@ -36,22 +32,22 @@ def parse_args():
     )
     parser.add_argument(
         "--script",
-        default="myObjectCounting.py",
+        default="src/myObjectCounting.py",
         help="Counting script to run.",
     )
     parser.add_argument(
         "--output",
-        default="evaluation_results.csv",
+        default="results/evaluation_results.csv",
         help="Detailed evaluation CSV output.",
     )
     parser.add_argument(
         "--summary",
-        default="evaluation_summary.md",
+        default="results/evaluation_summary.md",
         help="Markdown summary output.",
     )
     parser.add_argument(
         "--output-dir",
-        default="eval_outputs",
+        default="results/videos",
         help="Directory for rendered tracking videos produced during evaluation.",
     )
     parser.add_argument("--model", default="yolo26s.pt", help="YOLO model weights.")
@@ -356,7 +352,7 @@ def write_summary(path, rows):
 
 def main():
     args = parse_args()
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent
     ground_truth_path = resolve_path(args.ground_truth, base_dir)
     script_path = resolve_path(args.script, base_dir)
     output_path = resolve_path(args.output, base_dir)

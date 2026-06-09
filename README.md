@@ -7,7 +7,16 @@ Projekt realizuje zliczanie osób przekraczających wyznaczoną linię wejścia/
 Główny plik programu:
 
 ```text
-myObjectCounting.py
+src/myObjectCounting.py
+```
+
+Struktura najważniejszych katalogów:
+
+```text
+src/                 kod źródłowy
+scripts/             skrypty uruchomieniowe
+data/annotations/    wartości referencyjne GT
+results/             wyniki ewaluacji, raporty i wykresy
 ```
 
 Pipeline:
@@ -46,9 +55,9 @@ python -m pip install -r requirements.txt
 Przykład dla filmu 320x240:
 
 ```bash
-python myObjectCounting.py \
+python src/myObjectCounting.py \
   --source data/new_processed/2015_05_10_11_15_14FrontColor.mp4 \
-  --output result.mp4 \
+  --output results/demo_result.mp4 \
   --conf 0.35 \
   --imgsz 960 \
   --nms-iou 0.70 \
@@ -58,6 +67,8 @@ python myObjectCounting.py \
   --line 0 150 320 150 \
   --line-margin 8 \
   --count-cooldown 15 \
+  --device cpu \
+  --no-display
 ```
 
 Po zakończeniu program wypisuje:
@@ -89,7 +100,7 @@ Final counts: IN=..., OUT=...
 Wyniki testów są zbierane w:
 
 ```text
-results_summary.md
+results/results_summary.md
 ```
 
 Do każdego filmu należy ręcznie policzyć `GT_IN` i `GT_OUT`, a następnie porównać je z wynikiem programu.
@@ -97,11 +108,31 @@ Do każdego filmu należy ręcznie policzyć `GT_IN` i `GT_OUT`, a następnie po
 Automatyczna ewaluacja na podstawie pliku `data/annotations/ground_truth.csv`:
 
 ```bash
-python evaluate_counts.py \
-  --model yolo26s.pt
+python src/evaluate_counts.py \
+  --model best7.pt
 ```
 
-Skrypt zapisuje szczegółowe wyniki do `evaluation_results.csv`, krótkie podsumowanie do `evaluation_summary.md` oraz nagrania wynikowe do katalogu `eval_outputs/`.
+Można też użyć skrótu:
+
+```bash
+bash scripts/evaluate.sh
+```
+
+Skrypt zapisuje szczegółowe wyniki do `results/evaluation_results.csv`, krótkie podsumowanie do `results/evaluation_summary.md` oraz nagrania wynikowe do katalogu `results/videos/`.
+
+Wykresy i raport zbiorczy generuje:
+
+```bash
+python src/summarize_evaluation.py
+```
+
+albo:
+
+```bash
+bash scripts/summarize.sh
+```
+
+Wyniki trafiają do `results/evaluation_report.md` oraz `results/plots/`.
 
 Metryka używana w raporcie:
 

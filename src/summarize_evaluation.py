@@ -11,17 +11,17 @@ def parse_args():
     )
     parser.add_argument(
         "--input",
-        default="evaluation_results.csv",
+        default="results/evaluation_results.csv",
         help="CSV produced by evaluate_counts.py.",
     )
     parser.add_argument(
         "--output-dir",
-        default="evaluation_plots",
+        default="results/plots",
         help="Directory for generated SVG charts.",
     )
     parser.add_argument(
         "--report",
-        default="evaluation_report.md",
+        default="results/evaluation_report.md",
         help="Markdown report path.",
     )
     return parser.parse_args()
@@ -319,7 +319,7 @@ def generate_report(path, chart_dir, rows, failed_rows, summary):
 
 def main():
     args = parse_args()
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent
     input_path = base_dir / args.input
     chart_dir = base_dir / args.output_dir
     report_path = base_dir / args.report
