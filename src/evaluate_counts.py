@@ -50,16 +50,16 @@ def parse_args():
         default="results/videos",
         help="Directory for rendered tracking videos produced during evaluation.",
     )
-    parser.add_argument("--model", default="yolo26s.pt", help="YOLO model weights.")
-    parser.add_argument("--conf", type=float, default=0.5, help="YOLO confidence threshold.")
-    parser.add_argument("--imgsz", type=int, default=None, help="YOLO inference image size.")
-    parser.add_argument("--nms-iou", type=float, default=None, help="YOLO NMS IoU threshold.")
-    parser.add_argument("--iou", type=float, default=0.30, help="Tracker IoU matching threshold.")
-    parser.add_argument("--max-age", type=int, default=30, help="Frames to keep a track without detection.")
-    parser.add_argument("--min-hits", type=int, default=3, help="Detections needed to confirm a track.")
+    parser.add_argument("--model", default="best7.pt", help="YOLO model weights.")
+    parser.add_argument("--conf", type=float, default=0.3, help="YOLO confidence threshold.")
+    parser.add_argument("--imgsz", type=int, default=960, help="YOLO inference image size.")
+    parser.add_argument("--nms-iou", type=float, default=0.8, help="YOLO NMS IoU threshold.")
+    parser.add_argument("--iou", type=float, default=0.3, help="Tracker IoU matching threshold.")
+    parser.add_argument("--max-age", type=int, default=12, help="Frames to keep a track without detection.")
+    parser.add_argument("--min-hits", type=int, default=4, help="Detections needed to confirm a track.")
     parser.add_argument("--target-class", type=int, default=0, help="Class id to count.")
     parser.add_argument("--device", default=None, help="Inference device, e.g. cpu or cuda:0.")
-    parser.add_argument("--line-margin", type=float, default=0.0, help="Dead zone around counting line.")
+    parser.add_argument("--line-margin", type=float, default=8.0, help="Dead zone around counting line.")
     parser.add_argument("--count-cooldown", type=int, default=0, help="Frames before a track can be counted again.")
     parser.add_argument(
         "--line",
