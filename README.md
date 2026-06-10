@@ -107,7 +107,7 @@ results/results_summary.md
 
 Do każdego filmu należy ręcznie policzyć `GT_IN` i `GT_OUT`, a następnie porównać je z wynikiem programu.
 
-Automatyczna ewaluacja na podstawie pliku `data/annotations/ground_truth.csv`:
+Automatyczna ewaluacja na podstawie pliku `data/annotations/ground_truth_baidu.csv`:
 
 ```bash
 python src/evaluate_counts.py \

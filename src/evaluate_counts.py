@@ -21,7 +21,7 @@ def parse_args():
     )
     parser.add_argument(
         "--ground-truth",
-        default="data/annotations/ground_truth.csv",
+        default="data/annotations/ground_truth_baidu.csv",
         help="CSV with filename, gt_in, gt_out and optional line coordinates.",
     )
     parser.add_argument(
@@ -50,7 +50,7 @@ def parse_args():
         default="results/videos",
         help="Directory for rendered tracking videos produced during evaluation.",
     )
-    parser.add_argument("--model", default="best7.pt", help="YOLO model weights.")
+    parser.add_argument("--model", default="models/best7.pt", help="YOLO model weights.")
     parser.add_argument("--conf", type=float, default=0.3, help="YOLO confidence threshold.")
     parser.add_argument("--imgsz", type=int, default=960, help="YOLO inference image size.")
     parser.add_argument("--nms-iou", type=float, default=0.8, help="YOLO NMS IoU threshold.")
