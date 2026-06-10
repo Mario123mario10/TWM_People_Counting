@@ -47,7 +47,6 @@ Utworzenie i aktywacja środowiska:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
@@ -110,14 +109,7 @@ Do każdego filmu należy ręcznie policzyć `GT_IN` i `GT_OUT`, a następnie po
 Automatyczna ewaluacja na podstawie pliku `data/annotations/ground_truth_baidu.csv`:
 
 ```bash
-python src/evaluate_counts.py \
-  --model models/best7.pt
-```
-
-Można też użyć skrótu:
-
-```bash
-bash scripts/evaluate.sh
+python src/evaluate_counts.py
 ```
 
 Skrypt zapisuje szczegółowe wyniki do `results/evaluation_results.csv`, krótkie podsumowanie do `results/evaluation_summary.md` oraz nagrania wynikowe do katalogu `results/videos/`.
@@ -126,12 +118,6 @@ Wykresy i raport zbiorczy generuje:
 
 ```bash
 python src/summarize_evaluation.py
-```
-
-albo:
-
-```bash
-bash scripts/summarize.sh
 ```
 
 Wyniki trafiają do `results/evaluation_report.md` oraz `results/plots/`.
@@ -152,6 +138,7 @@ System działa gorzej w przypadku:
 - okluzji,
 - niskiej rozdzielczości,
 - dużego tłoku przy linii,
-- niestabilnych detekcji YOLO.
+- niestabilnych detekcji YOLO
+- nakryć głowy na osobach.
 
 Położenie linii zliczania ma duży wpływ na wynik. Linię należy ustawić tam, gdzie osoby są widoczne możliwie stabilnie.
